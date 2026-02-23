@@ -1,0 +1,14 @@
+numpy
+matplotlib
+seaborn
+pandas
+scikit-learn
+lightgbm
+xgboost
+shap
+lime
+imblearn
+ipython
+openpyxl
+scikit-bio
+scipy
