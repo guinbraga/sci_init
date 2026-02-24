@@ -7,7 +7,7 @@ jupyter:
       extension: .md
       format_name: markdown
       format_version: '1.3'
-      jupytext_version: 1.19.1
+      jupytext_version: 1.18.1
   kernelspec:
     display_name: Python (bioreactor)
     language: python
@@ -296,7 +296,6 @@ print(f"Teste t para ASVs observados: t={t_asv:.4f}, p={p_asv:.4f}")
 ```python
 fig, (ax3, ax4) = plt.subplots(1, 2, figsize=(16, 6))
 
-# Plotando o boxplot da diversidade de Shannon por Experiment
 sns.boxplot(data=metadata, x='Experiment', y='Shannon', 
             hue='Experiment', palette='Set2', ax=ax3)
 
@@ -308,7 +307,6 @@ ax3.set_ylabel('Índice de diversidade Shannon')
 ax3.set_xlabel('Experimento')
 ax3.grid(True)
 
-# Plotando o boxplot da contagem de ASVs observados
 sns.boxplot(data=metadata, x='Experiment', y='Observed_OTUs', 
             hue='Experiment', palette='Set2', ax=ax4)
 
@@ -320,7 +318,6 @@ ax4.set_ylabel('Conta de OTU´s observada')
 ax4.set_xlabel('Experimento')
 ax4.grid(True)
 
-# Ajustar o espaçamento entre os gráficos
 plt.tight_layout()
 plt.show()
 ```
@@ -358,20 +355,15 @@ print(f"PERMANOVA results: pseudo-F={permanova_results['test statistic']:.4f}, p
 ### Kruskal-Wallis Test
 
 ```python
-# Agrupar dados por diferentes classes no campo "Experiment"
-# Lista para armazenar os valores de Shannon e Observed_ASV para cada classe
 shannon_groups = []
 asv_groups = []
 
-# Adiciona os dados de cada grupo em listas para o teste Kruskal-Wallis
 for group in metadata['Experiment'].unique():
     shannon_groups.append(metadata[metadata['Experiment'] == group]['Shannon'])
     asv_groups.append(metadata[metadata['Experiment'] == group]['Observed_OTUs'])
 
-# Teste de Kruskal-Wallis para Shannon
 h_shannon, p_shannon = kruskal(*shannon_groups)
 
-# Teste de Kruskal-Wallis para ASV observados
 h_asv, p_asv = kruskal(*asv_groups)
 
 print(f"Teste Kruskal-Wallis para Shannon: H={h_shannon:.4f}, p={p_shannon:.4f}")
@@ -380,55 +372,236 @@ print(f"Teste Kruskal-Wallis para ASVs observados: H={h_asv:.4f}, p={p_asv:.4f}"
 
 ### Plotting Observed OTUs and Shannon Diversity per Experiment Category
 
-First, set plot to two side-by-side plots:
+#### Order set and category count
+
+We'll set an order to be used in all boxplots:
 
 ```python
-fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(16, 6))
+order = ['Inoculum-1', 'Inoculum-2', '1T-1', '1T-2', '2T', '3T',
+         'Inoculum-R1', 'Inoculum-R2', 'Inoculum-R3', 'R1', 'R2',
+         'R3', 'Foam']
+```
 
-# Observed OTUs by Category
+We'll also value_count by category:
+
+```python
+metadata.groupby('Category')['Category'].value_counts()
+```
+
+
+#### No gut compartiment discretion
+
+##### Observed_OTUs by category
+
+```python
+fig, ax1 = plt.subplots(figsize=(10, 6))
 
 sns.boxplot(data=metadata, x='Category', y='Observed_OTUs', 
-            hue='Category', palette='Set2', ax=ax1)
+            hue='Category', palette='Set2', ax=ax1, order=order)
+
 sns.stripplot(data=metadata, x='Category', y='Observed_OTUs', 
-              color='black', jitter=True, ax=ax1)
+              color='black', jitter=True, ax=ax1, order=order)
+
 ax1.set_title("OTU's observados por Experimento")
 ax1.set_ylabel("Contagem de OTU's observada")
 ax1.set_xlabel("Experimento")
 ax1.set_xticklabels(ax1.get_xticklabels(), rotation=45)
 ax1.grid(True)
+```
+##### Shannon by category
 
-# Shannon Diversity by Category
+```python
+fig, ax2 = plt.subplots(figsize=(10, 6))
 
 sns.boxplot(data=metadata, x='Category', y='Shannon', 
-            hue='Category', palette='Set2', ax=ax2)
+            hue='Category', palette='Set2', ax=ax2, order=order)
+
 sns.stripplot(data=metadata, x='Category', y='Shannon', 
-              color='black', jitter=True, ax=ax2)
+              color='black', jitter=True, ax=ax2, order=order)
+
 ax2.set_title("Diversidade alfa (Shannon) por Experimento")
 ax2.set_ylabel("Índice de diversidade Shannon")
 ax2.set_xlabel("Experimento")
 ax2.set_xticklabels(ax2.get_xticklabels(), rotation=45)
 ax2.grid(True)
 
-plt.tight_layout()
-plt.show()
 ```
 
+#### Midgut compartiment discretion
+
+First we'll select the midgut data:
+
+```python
+mid_data = metadata[metadata['Gut compartiment'] == 'Midgut']
+```
+
+##### Observed_OTUs by experiment category
+
+```python
+fig, ax1 = plt.subplots(figsize=(10, 6))
+
+sns.boxplot(data=mid_data, x='Category', y='Observed_OTUs', 
+            hue='Category', palette='Set2', ax=ax1, order=order)
+
+sns.stripplot(data=mid_data, x='Category', y='Observed_OTUs', 
+              color='black', jitter=True, ax=ax1, order=order)
+
+ax1.set_title("Observed Midgut OTUs by Experiment Category")
+ax1.set_ylabel("Observed OTUs count")
+ax1.set_xlabel("Experiment category")
+ax1.set_xticklabels(ax1.get_xticklabels(), rotation=45)
+ax1.grid(True)
+```
+
+##### Shannon index by experiment category
+
+
+```python
+fig, ax2 = plt.subplots(figsize=(10, 6))
+
+sns.boxplot(data=mid_data, x='Category', y='Shannon', 
+            hue='Category', palette='Set2', ax=ax2, order=order)
+
+sns.stripplot(data=mid_data, x='Category', y='Shannon', 
+              color='black', jitter=True, ax=ax2, order=order)
+
+ax2.set_title("Midgut Shannon Alpha Diversity by experiment category")
+ax2.set_ylabel("Shannon Alpha Diversity Index")
+ax2.set_xlabel("Experiment Category")
+ax2.set_xticklabels(ax2.get_xticklabels(), rotation=45)
+ax2.grid(True)
+```
+
+#### Hindgut compartiment discretion
+
+Select hindgut data:
+
+```python
+hind_data = metadata[metadata['Gut compartiment'] == 'Hindgut']
+```
+
+##### Observed_OTUs by experiment category
+
+```python
+fig, ax1 = plt.subplots(figsize=(10, 6))
+
+sns.boxplot(data=hind_data, x='Category', y='Observed_OTUs', 
+            hue='Category', palette='Set2', ax=ax1, order=order)
+
+sns.stripplot(data=hind_data, x='Category', y='Observed_OTUs', 
+              color='black', jitter=True, ax=ax1, order=order)
+
+ax1.set_title("Observed Hindgut OTUs by Experiment Category")
+ax1.set_ylabel("Observed OTUs count")
+ax1.set_xlabel("Experiment category")
+ax1.set_xticklabels(ax1.get_xticklabels(), rotation=45)
+ax1.grid(True)
+```
+
+##### Shannon index by experiment category
+
+
+```python
+fig, ax2 = plt.subplots(figsize=(10, 6))
+
+sns.boxplot(data=hind_data, x='Category', y='Shannon', 
+            hue='Category', palette='Set2', ax=ax2, order=order)
+
+sns.stripplot(data=hind_data, x='Category', y='Shannon', 
+              color='black', jitter=True, ax=ax2, order=order)
+
+ax2.set_title("Hindgut Shannon Alpha Diversity by experiment category")
+ax2.set_ylabel("Shannon Alpha Diversity Index")
+ax2.set_xlabel("Experiment Category")
+ax2.set_xticklabels(ax2.get_xticklabels(), rotation=45)
+ax2.grid(True)
+```
+
+#### Side-by-Side gut compartiment comparison
+
+We'll do Shannon, then Observed OTUs side by side for
+better visualization
+
+##### Shannon Diversity
+
+```python
+fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(16, 6))
+
+sns.boxplot(data=mid_data, x='Category', y='Shannon', 
+            hue='Category', palette='Set2', ax=ax1, order=order)
+
+sns.stripplot(data=mid_data, x='Category', y='Shannon', 
+              color='black', jitter=True, ax=ax1, order=order)
+
+ax1.set_title("Midgut Shannon Alpha Diversity by experiment category")
+ax1.set_ylabel("Shannon Alpha Diversity Index")
+ax1.set_xlabel("Experiment Category")
+ax1.set_xticklabels(ax1.get_xticklabels(), rotation=45)
+ax1.grid(True)
+
+sns.boxplot(data=hind_data, x='Category', y='Shannon', 
+            hue='Category', palette='Set2', ax=ax2, order=order)
+
+sns.stripplot(data=hind_data, x='Category', y='Shannon', 
+              color='black', jitter=True, ax=ax2, order=order)
+
+ax2.set_title("Hindgut Shannon Alpha Diversity by experiment category")
+ax2.set_ylabel("Shannon Alpha Diversity Index")
+ax2.set_xlabel("Experiment Category")
+ax2.set_xticklabels(ax2.get_xticklabels(), rotation=45)
+ax2.grid(True)
+
+```
+
+##### Observed OTUs
+
+```python
+fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(16, 6))
+
+sns.boxplot(data=mid_data, x='Category', y='Observed_OTUs', 
+            hue='Category', palette='Set2', ax=ax1, order=order)
+
+sns.stripplot(data=mid_data, x='Category', y='Observed_OTUs', 
+              color='black', jitter=True, ax=ax1, order=order)
+
+ax1.set_title("Midgut Observed OTUs by experiment category")
+ax1.set_ylabel("Observed OTUs Count")
+ax1.set_xlabel("Experiment Category")
+ax1.set_xticklabels(ax1.get_xticklabels(), rotation=45)
+ax1.grid(True)
+
+sns.boxplot(data=hind_data, x='Category', y='Observed_OTUs', 
+            hue='Category', palette='Set2', ax=ax2, order=order)
+
+sns.stripplot(data=hind_data, x='Category', y='Observed_OTUs', 
+              color='black', jitter=True, ax=ax2, order=order)
+
+ax2.set_title("Hindgut Observed OTUs by experiment category")
+ax2.set_ylabel("Observed OTUs Count")
+ax2.set_xlabel("Experiment Category")
+ax2.set_xticklabels(ax2.get_xticklabels(), rotation=45)
+ax2.grid(True)
+
+```
 ### Plotting NDMS by Gut Compartiment and Category
 
 ```python
-plt.figure(figsize=(8, 6))
-sns.scatterplot(data=metadata, x='NMDS1', y='NMDS2', hue='Gut compartiment', style='Category',
-                palette='Set1', s=100, markers=markers)
+plt.figure(figsize=(10, 6))
+sns.scatterplot(data=metadata, x='NMDS1', y='NMDS2', hue='Gut compartiment',
+                style='Category', palette='Set1', s=100, markers=markers)
 plt.title('NMDS of Microbial Composition')
 plt.xlabel('NMDS1')
 plt.ylabel('NMDS2')
-plt.legend(title='Gut and Category')
+plt.legend(title='Gut and Category', bbox_to_anchor=(1.04, 1), loc='upper left')
 plt.xticks(rotation=45)
 plt.tight_layout()
 plt.grid(True)
 
 #mostrar grafico
 plt.show()
+```
+
+```python
 
 # Criar um objeto DistanceMatrix com os IDs das amostras
 dist_matrix_obj = DistanceMatrix(dist_matrix_square, ids=asv_all.index)
