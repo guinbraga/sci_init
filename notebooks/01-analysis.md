@@ -7,7 +7,7 @@ jupyter:
       extension: .md
       format_name: markdown
       format_version: '1.3'
-      jupytext_version: 1.18.1
+      jupytext_version: 1.19.1
   kernelspec:
     display_name: Python (bioreactor)
     language: python
@@ -146,6 +146,9 @@ metadata.shape
 
 ### Markers for graphs:
 
+
+#### Matplotlib markers
+
 ```python
 markers = {
     '1T': 'o',           # círculo
@@ -170,6 +173,35 @@ markers = {
 markers_exp = {
     'Enrichement': 'o',  # círculo
     'Reactor': 's',     # quadrado
+}
+```
+
+#### Plotly markers
+
+```python
+px_markers = {
+    '1T': 0,           # círculo
+    '2T': 1,           # quadrado
+    '3T': 2,           # diamante
+    'R1': 3,           # cruz
+    'R2': 17,           # estrela
+    'R3': 5,           # triangulo-cima
+    'Foam': 6,         # triangulo-baixo
+    'Inoculum': 18,     # hexagrama
+
+    # Novos símbolos preenchidos para as categorias específicas
+    'Inoculum-1': 13,   # pentágono
+    'Inoculum-2': 313,   # pentagono aberto
+    'Inoculum-R1': 22,  # diamante-estrela
+    'Inoculum-R2': 122,  # diamante-estrela aberto
+    'Inoculum-R3': 322,  # diamante-estrela aberto com ponto
+    '1T-1': 0,         # círculo
+    '1T-2': 300          # circulo aberto com ponto
+}
+
+px_markers_exp = {
+    'Enrichement': 0,  # círculo
+    'Reactor': 1,     # quadrado
 }
 ```
 
@@ -264,7 +296,7 @@ print(f"Teste t para ASVs observados: t={t_asv:.4f}, p={p_asv:.4f}")
 permanova_results = permanova(dist_matrix_obj, metadata['Gut compartiment'], permutations=999)
 print(f"PERMANOVA results: pseudo-F={permanova_results['test statistic']:.4f}, p-value={permanova_results['p-value']:.4f}")
 ```
-### T-Test and Plots by Experiment
+### Plots and T-Test by Experiment
 
 I suspect this could be problematic because, as the code comments
 suggest, the author intended to do a T-Test of Shannon index and
@@ -322,7 +354,7 @@ plt.tight_layout()
 plt.show()
 ```
 
-### NDMS Analysis
+#### NDMS Analysis
 
 
 ```python
@@ -344,7 +376,7 @@ plt.grid(True)
 plt.show()
 ```
 
-### PERMANOVA for Beta Diversity
+#### PERMANOVA for Beta Diversity
 
 ```python
 dist_matrix_obj = DistanceMatrix(dist_matrix_square, ids=asv_all.index)
@@ -352,7 +384,7 @@ permanova_results = permanova(dist_matrix_obj, metadata['Experiment'], permutati
 print(f"PERMANOVA results: pseudo-F={permanova_results['test statistic']:.4f}, p-value={permanova_results['p-value']:.4f}")
 ```
 
-### Kruskal-Wallis Test
+#### Kruskal-Wallis Test
 
 ```python
 shannon_groups = []
@@ -370,16 +402,18 @@ print(f"Teste Kruskal-Wallis para Shannon: H={h_shannon:.4f}, p={p_shannon:.4f}"
 print(f"Teste Kruskal-Wallis para ASVs observados: H={h_asv:.4f}, p={p_asv:.4f}")
 ```
 
-### Plotting Observed OTUs and Shannon Diversity per Experiment Category
+### Plots and staticstical tests per Experiment Category
+
 
 #### Order set and category count
 
 We'll set an order to be used in all boxplots:
 
 ```python
-order = ['Inoculum-1', 'Inoculum-2', '1T-1', '1T-2', '2T', '3T',
+order = pd.api.types.CategoricalDtype(categories=['Inoculum-1', 'Inoculum-2', '1T-1', '1T-2', '2T', '3T',
          'Inoculum-R1', 'Inoculum-R2', 'Inoculum-R3', 'R1', 'R2',
-         'R3', 'Foam']
+         'R3', 'Foam'], ordered=True)
+metadata['Category'] = metadata['Category'].astype(order)
 ```
 
 We'll also value_count by category:
@@ -388,6 +422,10 @@ We'll also value_count by category:
 metadata.groupby('Category')['Category'].value_counts()
 ```
 
+
+```python
+metadata.groupby('Gut compartiment')['Category'].value_counts().sort_index()
+```
 
 #### No gut compartiment discretion
 
@@ -584,6 +622,17 @@ ax2.grid(True)
 
 ```
 ### Plotting NDMS by Gut Compartiment and Category
+
+```python
+import plotly.express as px
+fig = px.scatter(metadata, x='NMDS1', y='NMDS2', color='Gut compartiment',
+                symbol='Category', category_orders={'Gut compartiment': ['Midgut', 'Hindgut'],
+                                                    'Category': order.categories},
+                symbol_map=px_markers, title='nMDS of Microbial Distribution')
+fig.update_traces(marker={'size':14})
+fig.update_layout(width=1200, height=700)
+fig.show()
+```
 
 ```python
 plt.figure(figsize=(10, 6))
