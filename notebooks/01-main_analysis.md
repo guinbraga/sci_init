@@ -697,7 +697,6 @@ fig.update_layout(
 )
 fig.show()
 fig.write_html('nmds_gut_cat.html')
-fig.data
 ```
 
 
