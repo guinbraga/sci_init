@@ -79,11 +79,19 @@ meta_all = pd.read_csv('../drive/Bettle_experiments/01_metadata_productivity.txt
 meta_all.info()
 ```
 
+```python
+meta_all
+```
+
 ### ASV loading
 
 ```python
 asv_all = load_asv_file("../drive/Bettle_experiments/01_map_complete_relative_abundance_table.tsv")
 asv_all.info()
+```
+
+```python
+asv_all
 ```
 
 ### Merging on 'SampleID'
@@ -92,6 +100,10 @@ asv_all.info()
 merged = pd.merge(meta_all[['Gut compartiment', 'Experiment', 'Category']], asv_all,
                   how='inner', left_index=True, right_index=True)
 merged.info()
+```
+
+```python
+merged
 ```
 
 #### Checking ASVs with count zero in all samples
@@ -359,7 +371,7 @@ plt.show()
 
 ```python
 mds = MDS(n_components=2, metric='precomputed', random_state=42,
-          n_init=4, init='random')
+          metric_mds=False, n_init=4, init='random')
 nmds_results = mds.fit_transform(dist_matrix_square)
 
 metadata['NMDS1'] = nmds_results[:, 0]
@@ -430,7 +442,7 @@ metadata.groupby('Gut compartiment')['Category'].value_counts().sort_index()
 
 #### No gut compartiment discretion
 
-##### Observed_OTUs by category
+##### Observed_OTUs by experiment category
 
 ```python
 fig, ax1 = plt.subplots(figsize=(10, 6))
@@ -449,16 +461,18 @@ ax1.set_xlabel("Experimento")
 ax1.set_xticklabels(ax1.get_xticklabels(), rotation=45)
 ax1.grid(True)
 ```
-##### Shannon by category
+##### Shannon by experiment category
 
 ```python
 fig, ax2 = plt.subplots(figsize=(10, 6))
 
 sns.boxplot(data=metadata, x='Category', y='Shannon', 
-            hue='Category', palette='Set2', ax=ax2, order=order)
+            hue='Category', palette='Set2', ax=ax2, order=order,
+            dodge=False)
 
 sns.stripplot(data=metadata, x='Category', y='Shannon', 
-              color='black', jitter=True, ax=ax2, order=order)
+              color='black', jitter=True, ax=ax2, order=order,
+              dodge=False)
 
 ax2.set_title("Diversidade alfa (Shannon) por Experimento")
 ax2.set_ylabel("Índice de diversidade Shannon")
@@ -639,7 +653,13 @@ ax2.set_xticklabels(ax2.get_xticklabels(), rotation=45)
 ax2.grid(True)
 
 ```
+```python
+
+```
+
+
 ### Plotting NDMS by Gut Compartiment and Category
+
 
 #### Plotly interactive plot
 
@@ -651,8 +671,10 @@ fig = px.scatter(metadata, x='NMDS1', y='NMDS2', color='Gut compartiment',
                 symbol_map=px_markers, title='nMDS of Microbial Distribution')
 fig.update_traces(marker={'size':14})
 fig.update_layout(width=1200, height=700)
-fig.update_yaxes(range=[-0.7, 0.8])
-fig.update_xaxes(range=[-0.8, 0.8])
+y_range = [metadata['NMDS2'].min()-0.1, metadata['NMDS2'].max()+0.1]
+x_range = [metadata['NMDS1'].min()-0.1, metadata['NMDS1'].max()+0.1]
+fig.update_yaxes(range=y_range)
+fig.update_xaxes(range=x_range)
 for point in fig.data:
     group = point.legendgroup.split(',')[0]
     point.legendgroup = group
@@ -698,7 +720,6 @@ fig.update_layout(
 fig.show()
 fig.write_html('nmds_gut_cat.html')
 ```
-
 
 #### Matplotlib regular plot
 

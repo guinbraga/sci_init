@@ -1,3 +1,5 @@
 __pycache__/
 drive/
 pyproject.toml
+outputs/to_send/
+notebooks/.ipy*
